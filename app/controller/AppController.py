@@ -1,7 +1,7 @@
 from flask import request, jsonify, flash
 from app import app
 from app.module.Engine import Engine, preprocess
-from app.module.Query import read_all, read_with_params
+from app.module.Query import read_all, read_with_params, insert, read_one
 import os
 from flask import render_template
 from sklearn.model_selection import cross_val_score
@@ -9,6 +9,7 @@ import time
 import pandas as pd
 import numpy as np
 from numpy import math #ambil library numpy untuk konversi hasil score NAN
+from datetime import datetime
 
 
 
@@ -52,6 +53,33 @@ def data_dosen():
     return render_template('data-dosen.html',
         tables=[html], 
     )
+@app.route('/tambah-dosen')
+def tambah_dosen():
+    return render_template('tambah-dosen.html')
+
+@app.route('/proses-tambah-dosen', methods=['POST'])
+def proses_tambah_dosen():
+    nama_dosen  = request.form['nama_dosen']
+    now = datetime.now()
+    dt_string = now.strftime("%Y-%m-%d %H:%M:%S")
+    last_id = read_one('SELECT id FROM mst_dosen ORDER BY id DESC LIMIT 1')
+    insert_data_dosen = """INSERT INTO mst_dosen (id, nama_dosen, jumlah_pengajar, created_by, created_at) 
+                            VALUES (%s, %s, %s, %s, %s) """
+    data_result = [(last_id[0]+1,nama_dosen,0,1,dt_string)]
+    results = insert(insert_data_dosen,data_result)
+    dosen = read_with_params('SELECT id FROM mst_dosen WHERE nama_dosen = %s',(nama_dosen,))
+    judul_dosen = request.form.getlist('judul_dosen[]')
+    judul_dosen_temp = []
+    for judul in  judul_dosen :
+        last_id_judul       = read_one('SELECT id_judul FROM mst_dosen_judul ORDER BY id_judul DESC LIMIT 1')
+        insert_judul_dosen = """INSERT INTO mst_dosen_judul (id_judul, dosen_id, judul, preprocessing) 
+                            VALUES (%s, %s, %s, %s) """
+        preprocessing = preprocess(judul) #konversi ke preprocessing
+        
+        data_result_judul   = [(last_id_judul[0]+1,dosen[0],judul,preprocessing)]
+        results_judul = insert(insert_judul_dosen,data_result_judul)
+
+    return render_template('tambah-dosen.html')
 
 
 @app.route('/data-mahasiswa')
@@ -97,7 +125,7 @@ def proses():
         return "gagal"
     else :
         document = []
-        df_listed = []
+
         for i, doc in enumerate(docs):
             engine.addDocument(doc)
             document.append("Document_{}".format(i + 1))
@@ -109,7 +137,7 @@ def proses():
         ScoreDf = (pd.DataFrame(titles_score)).T #merubah data hasil keluaran menjadi DAtaFrame
         ScoreDf.columns = query #mendefinisikan quqery sebagai data training
         ScoreDf["Documents"] = document #membuat Document sesuai urutan teratas hasil TF-IDF dan VSM
-        
+        df_listed = []        
         for i in query:
             labels = []
             for j in ScoreDf[i]:
@@ -118,24 +146,23 @@ def proses():
                 else:
                     labels.append(0)
             datadf = pd.DataFrame(ScoreDf[i])
-            datadf['score'] = pd.DataFrame(ScoreDf[i])
             datadf['Documents'] = ScoreDf['Documents']
-            datadf['Labels'] = labels
-            datadf['Judul'] = temp_judul
-            datadf['Dosen'] = temp_dosen
-            datadf['Student'] = temp_student_max
+            datadf["Labels"] = labels
             df_listed.append(datadf.sort_values(by=[i], ascending=False))
       
         simpan = []
-        for df in df_listed:
+        for i, df in enumerate(df_listed):
             for j in range(len(df["Documents"])):
+                if (math.isnan(float(df[query[i]][j]))):
+                    score = '0'
+                else:
+                    score = float(df[query[i]][j])
                 document = df['Documents'][j]
-                score = df['score'][j]
-                # score = float(df[query[i]][j])
-                labels = df['Labels'][j]
-                judul = df['Judul'][j]
-                dosen = df['Dosen'][j]
-                student = df['Student'][j]
+                score = score
+                labels = int(df['Labels'][j])
+                judul = temp_judul[j]
+                dosen = temp_dosen[j]
+                student = temp_student_max[j]
                 simpan.append((document,labels,score,judul,dosen,student))
     df = pd.DataFrame(simpan, columns=['Document','Labels','Score','Judul','Nama Dosen','Kuota Siswa'])
     df.sort_values(by=['Score'], inplace=True, ascending=False)

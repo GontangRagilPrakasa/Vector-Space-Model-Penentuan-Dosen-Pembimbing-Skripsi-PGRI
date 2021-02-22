@@ -34,6 +34,38 @@ def preprocess(text):
     text_stem = stemmerEN(text_stem)
     return text_stem
 
+def TFIDF(doc) :  
+    factory = StopWordRemoverFactory()
+    stopwords = factory.get_stop_words()
+
+    tfidf_vectorizer = TfidfVectorizer(stop_words=stopwords,smooth_idf=False, norm=None)
+    X = tfidf_vectorizer.fit_transform(doc)
+    pd.DataFrame(X.toarray(), columns=tfidf_vectorizer.get_feature_names())
+    return X
+
+def cosine_similarity(trainVectorizerArray,testVectorizerArray):
+    cx = lambda a, b: round(np.inner(a, b) / (LA.norm(a) * LA.norm(b)), 3) 
+    #fungsi tanpa nama untuk normalisasi data dan definisi rumus Cosine Similarity 
+    #         print testVectorizerArray
+    output = []
+    for i in range(0, len(testVectorizerArray)):
+        output.append([])
+
+    for vector in trainVectorizerArray:
+        # print vector
+        u = 0
+        for testV in testVectorizerArray:
+            #perhitungan Cosine Similarity dalam bentuk vector dari dataset dengan query
+            #yang di masukan yang kemudian mengembalikan nilai cosine ke dalam variable
+            #cosine_score dalam bentuk list.
+            # print testV
+            cosine = cx(vector, testV)
+            #                 self.cosine_score.append(cosine)
+            #                 bulatin = (round(cosine),2)
+            output[u].append((cosine))
+            u = u + 1
+    return output
+
 class Engine:
     
     def __init__(self):

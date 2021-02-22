@@ -28,6 +28,21 @@ def read_all(query):
     except Error as err:
         print(f"Error: '{err}'")
 
+def read_one(query):
+    connection = mysql.connector.connect(host='localhost',
+                                         port = 3306,
+                                         database='vsm_teacher',
+                                         user="root",
+                                         password="")
+    cursor = connection.cursor()
+    result = None
+    try:
+        cursor.execute(query)
+        result = cursor.fetchone()
+        return result
+    except Error as err:
+        print(f"Error: '{err}'")
+
 def read_with_params(query, params):
     connection = mysql.connector.connect(host='localhost',
                                          port = 3306,
@@ -42,3 +57,20 @@ def read_with_params(query, params):
         return result
     except Error as err:
         print(f"Error: '{err}'")
+
+def insert(query,data):
+    connection = mysql.connector.connect(host='localhost',
+                                         port = 3306,
+                                         database='vsm_teacher',
+                                         user="root",
+                                         password="")
+    try:
+        
+        cursor = connection.cursor()
+        cursor.executemany(query, data)
+        connection.commit()
+        return True
+    except Exception as e:
+        print("Problem inserting into db: " + str(e))
+        return False
+    return False
