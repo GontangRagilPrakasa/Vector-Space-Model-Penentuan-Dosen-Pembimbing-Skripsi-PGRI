@@ -1,0 +1,25 @@
+{% include "header.html" %}
+<div class="container">
+    <center><h2>Data Mahasiswa</h2></center>
+    <br>
+    <form action="proses" method="post"> 
+      <div class="row">
+        <div class="col-xs-6 col-md-11">
+          <div class="input-group">
+            <input type="text" class="form-control" placeholder="Search" name="cari" id="txtSearch"/>
+            <div class="input-group-btn">
+              <button class="btn btn-primary" type="submit">
+                <span class="glyphicon glyphicon-search"></span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </form>
+    <h2>Data Dosen</h2> 
+    {% for table in tables %}
+        {{ table|safe }}
+    {% endfor %}
+  </div>
+
+  

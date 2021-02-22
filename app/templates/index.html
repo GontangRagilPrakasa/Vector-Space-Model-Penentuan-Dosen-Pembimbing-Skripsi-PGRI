@@ -1,0 +1,27 @@
+{% include "header.html" %}
+<div class="container">
+  <center><h2>Search Dosen Pembimbing Metode Vector Space Model</h2></center>
+  <br>
+  <form action="proses" method="post"> 
+    <div class="row">
+      <div class="col-xs-6 col-md-11">
+        <div class="input-group">
+          <input type="text" class="form-control" placeholder="Search" name="cari" id="txtSearch"/>
+          <div class="input-group-btn">
+            <button class="btn btn-primary" type="submit">
+              <span class="glyphicon glyphicon-search"></span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+  <h2>Rekomendasi Dosen Pembimbing Untuk Anda</h2>
+  <p>Rekomendasi ini berdasarkan kemiripan judul skripsi yang anda ajukan: {{ query }}</p>     
+  {% for table in tables %}
+      {{ table|safe }}
+  {% endfor %}
+</div>
+
+</body>
+</html>
