@@ -1,4 +1,4 @@
-from flask import request, jsonify, flash
+from flask import request, jsonify, flash, url_for, redirect
 from app import app
 from app.module.Engine import Engine, preprocess
 from app.module.Query import read_all, read_with_params, insert, read_one
@@ -65,6 +65,7 @@ def proses_tambah_dosen():
     last_id = read_one('SELECT id FROM mst_dosen ORDER BY id DESC LIMIT 1')
     insert_data_dosen = """INSERT INTO mst_dosen (id, nama_dosen, jumlah_pengajar, created_by, created_at) 
                             VALUES (%s, %s, %s, %s, %s) """
+
     data_result = [(last_id[0]+1,nama_dosen,0,1,dt_string)]
     results = insert(insert_data_dosen,data_result)
     dosen = read_with_params('SELECT id FROM mst_dosen WHERE nama_dosen = %s',(nama_dosen,))
@@ -84,22 +85,43 @@ def proses_tambah_dosen():
 
 @app.route('/data-mahasiswa')
 def data_mahasiswa():
-    search = " SELECT * FROM mst_dosen"
+    search = " SELECT * FROM mst_mahasiswa"
     results = read_all(search)
     simpan = []
     for i, doc in enumerate(results):
         document = "Document_{}".format(i + 1)
-        dosen = doc[1]
-        student = doc[2]
-        simpan.append((document,dosen,student))
+        nama_mahasiswa = doc[1]
+        nim = doc[2]
+        judul_skripsi = doc[3]
+        simpan.append((document,nama_mahasiswa,nim,judul_skripsi))
         
-    df = pd.DataFrame(simpan, columns=['Document','Nama Dosen','Kuota Siswa', ])
-    df.sort_values(by=['Kuota Siswa'], inplace=True, ascending=False)
+    df = pd.DataFrame(simpan, columns=['Document','Nama Mahasiswa','NIM Mahasiswa', 'Judul Skripsi', ])
     df = df.fillna(0)
     html = df.to_html(index= False,classes="table mb-0 border-0 table-responsive").replace('border="1"', "")
     return render_template('data-mahasiswa.html',
         tables=[html], 
     )
+
+@app.route('/tambah-mahasiswa')
+def tambah_mahasiswa():
+    return render_template('tambah-mahasiswa.html')
+
+@app.route('/proses-tambah-mahasiswa', methods=['POST'])
+def proses_tambah_mahasiswa():
+    nama_mahasiswa      = request.form['nama_mahasiswa']
+    nim                 = request.form['nim']
+    judul_skripsi       = request.form['judul_skripsi']
+    now = datetime.now()
+    dt_string = now.strftime("%Y-%m-%d %H:%M:%S")
+    last_id = read_one('SELECT id FROM mst_mahasiswa ORDER BY id DESC LIMIT 1')
+    print(last_id)
+    insert_data_mahasiswa = """INSERT INTO mst_mahasiswa (id, nama_mahasiswa, nim, judul_skripsi, created_by, created_at) 
+                            VALUES (%s, %s, %s, %s, %s, %s) """
+
+    data_result = [(last_id[0]+1,nama_mahasiswa,nim,judul_skripsi,1,dt_string)]
+    print(data_result)
+    results = insert(insert_data_mahasiswa,data_result)
+    return redirect('/data-mahasiswa')
 
 @app.route('/proses', methods=['POST','GET'])
 def proses():
