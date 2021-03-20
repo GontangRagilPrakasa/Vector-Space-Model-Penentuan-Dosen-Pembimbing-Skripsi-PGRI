@@ -1,0 +1,10 @@
+Bagaimana cara setupnya
+
+1. Masuk ke folder utama
+2. masuk ke venv tutorial https://stackoverflow.com/questions/7225900/how-to-install-packages-using-pip-according-to-the-requirements-txt-file-from-a
+3. install requirement.txt https://stackoverflow.com/questions/22250483/stop-pip-from-failing-on-single-package-when-installing-with-requirements-txt
+4. pip install flask sqlalchemy flask-sqlalchemy flask-migrate
+5. flask db init
+6. flask db migrate
+7. flask db upgrade
+8. python run.py

@@ -8,7 +8,7 @@ import itertools
 def connection():
     return mysql.connector.connect(host='localhost',
                                          port = 3306,
-                                         database='vsm_teacher',
+                                         database='vsm_teacher_mahasiswa',
                                          user="root",
                                          password="")
 
@@ -16,7 +16,7 @@ def connection():
 def read_all(query):
     connection = mysql.connector.connect(host='localhost',
                                          port = 3306,
-                                         database='vsm_teacher',
+                                         database='vsm_teacher_mahasiswa',
                                          user="root",
                                          password="")
     cursor = connection.cursor()
@@ -31,7 +31,7 @@ def read_all(query):
 def read_one(query):
     connection = mysql.connector.connect(host='localhost',
                                          port = 3306,
-                                         database='vsm_teacher',
+                                         database='vsm_teacher_mahasiswa',
                                          user="root",
                                          password="")
     cursor = connection.cursor()
@@ -46,7 +46,7 @@ def read_one(query):
 def read_with_params(query, params):
     connection = mysql.connector.connect(host='localhost',
                                          port = 3306,
-                                         database='vsm_teacher',
+                                         database='vsm_teacher_mahasiswa',
                                          user="root",
                                          password="")
     cursor = connection.cursor()
@@ -61,7 +61,7 @@ def read_with_params(query, params):
 def insert(query,data):
     connection = mysql.connector.connect(host='localhost',
                                          port = 3306,
-                                         database='vsm_teacher',
+                                         database='vsm_teacher_mahasiswa',
                                          user="root",
                                          password="")
     try:

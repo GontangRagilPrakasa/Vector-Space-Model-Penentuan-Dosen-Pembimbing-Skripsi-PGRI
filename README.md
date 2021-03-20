@@ -1,5 +1,4 @@
-# Vector-Space-Model-Penentuan-Dosen-Pembimbing-Skripsi-PGRI
-
+# Berita-Vector-Space-Model
 # Clone di local
 # import database dan sesuaikan nama database dengan nama file .sql
 # buka anaconda prompt
