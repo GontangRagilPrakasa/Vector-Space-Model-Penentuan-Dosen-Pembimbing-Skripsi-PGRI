@@ -8,13 +8,18 @@ import pandas as pd #ambil library pandas
 import os #ambil library os
 from numpy import math #ambil library numpy untuk konversi hasil score NAN
 from app.module.Query import read_all, read_with_params, insert, read_one
+import re
 
 
 @app.route("/", methods=RequestMethod.GET)
 def index():
     return jsonify({"message": "ok"})
 
-
+@app.route("/preprocessing", methods=['POST'])
+def preprocessing():
+    judul = request.form.get("judul")
+    return preprocess(judul)
+    
 @app.route("/search", methods=RequestMethod.GET_POST)
 def search():
     # dataset = pd.read_excel("app/db/databerita.xlsx")
@@ -71,66 +76,59 @@ def search():
         queriesPre.append(preprocess(query))
 
     # Cek di database apakah ada data dengan query pada inputan ataupun file
+   
+    engine = Engine()
+    docs = [str(x) for x in temp_preprrocessing]
+    documentsName = list()
+
+    for i, doc in enumerate(docs):
+        engine.addDocument(doc)
+        documentsName.append("Document_{}".format(i + 1))
+
+    for query in queriesPre:
+        engine.setQuery(query)  # Set query pencarian
+
+    titlesScores = engine.process_score()
+    ScoreDf = (pd.DataFrame(titlesScores)).T
+    ScoreDf.columns = queriesPre
+    ScoreDf["Documents"] = documentsName
+    dfListed = list()
+    for i in queriesPre:
+        labels = list()
+        for j in ScoreDf[i]:
+            if j > 0.000:
+                labels.append(1)
+            else:
+                labels.append(0)
+        datadf =pd.DataFrame(ScoreDf[i])
+        datadf["Documents"] = ScoreDf["Documents"]
+        datadf["Labels"] = labels
+        dfListed.append(datadf.sort_values(by=[i], ascending=False))
+
+    for i, df in enumerate(dfListed):
+        dbQuery = Queries(queriesPre[i])
+        for j in range(len(df["Documents"])):
+            if (math.isnan(float(df[queriesPre[i]][j]))):
+                score = '0'
+            else:
+                score = float(df[queriesPre[i]][j])
+            document            = df["Documents"][j]
+            label               = int(df["Labels"][j])
+            score               = score
+            judul               = temp_judul[j]
+            dosen               = temp_dosen[j]
+            dosen_judul         = temp_dosen_judul[j]
+            dosen_id            = temp_dosen_id[j]
+            data = document, label, score , judul, dosen, dosen_id,dosen_judul
+            
+            details = Details(data) 
+            dbQuery.details.append(details)
+
+        dbQuery.save()
+
     for query in queriesPre:
         data = Queries.findByQueryName(query)
-        if data is not None:
-            response.append(data)
-
-    if len(response) is not 0:
-        return jsonify(response)
-    else:
-        engine = Engine()
-        docs = [str(x) for x in temp_preprrocessing]
-        documentsName = list()
-
-        for i, doc in enumerate(docs):
-            engine.addDocument(doc)
-            documentsName.append("Document_{}".format(i + 1))
-
-        for query in queriesPre:
-            engine.setQuery(query)  # Set query pencarian
-
-        titlesScores = engine.process_score()
-        ScoreDf = (pd.DataFrame(titlesScores)).T
-        ScoreDf.columns = queriesPre
-        ScoreDf["Documents"] = documentsName
-        dfListed = list()
-        for i in queriesPre:
-            labels = list()
-            for j in ScoreDf[i]:
-                if j > 0.000:
-                    labels.append(1)
-                else:
-                    labels.append(0)
-            datadf =pd.DataFrame(ScoreDf[i])
-            datadf["Documents"] = ScoreDf["Documents"]
-            datadf["Labels"] = labels
-            dfListed.append(datadf.sort_values(by=[i], ascending=False))
-
-        for i, df in enumerate(dfListed):
-            dbQuery = Queries(queriesPre[i])
-            for j in range(len(df["Documents"])):
-                if (math.isnan(float(df[queriesPre[i]][j]))):
-                    score = '0'
-                else:
-                    score = float(df[queriesPre[i]][j])
-                document            = df["Documents"][j]
-                label               = int(df["Labels"][j])
-                score               = score
-                judul               = temp_judul[j]
-                dosen               = temp_dosen[j]
-                dosen_judul         = temp_dosen_judul[j]
-                dosen_id            = temp_dosen_id[j]
-                data = document, label, score , judul, dosen, dosen_id,dosen_judul
-               
-                details = Details(data) 
-                dbQuery.details.append(details)
-
-            dbQuery.save()
-
-        for query in queriesPre:
-            data = Queries.findByQueryName(query)
-            response.append(data)
+        response.append(data)
 
     return jsonify(response)
 

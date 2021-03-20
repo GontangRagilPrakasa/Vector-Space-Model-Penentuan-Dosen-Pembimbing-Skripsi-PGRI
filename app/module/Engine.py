@@ -18,7 +18,7 @@ translator = str.maketrans('', '', string.punctuation)
 
 def stemmerEN(text):
     porter = PorterStemmer()
-    stop = set(stopwords.words('indonesian'))
+    stop = set(stopwords.words('english'))
     text = text.lower()
     text = [i for i in text.lower().split() if i not in stop]
     text = ' '.join(text)
@@ -28,7 +28,7 @@ def stemmerEN(text):
 
 def preprocess(text):
     text = text.lower()
-    text_clean = remover.remove(text) #fungsi hapus stopword
+    text_clean = remover.remove(text)
     text_stem = stemmer.stem(text_clean)
     text_stem = stemmerEN(text_stem)
     return text_stem

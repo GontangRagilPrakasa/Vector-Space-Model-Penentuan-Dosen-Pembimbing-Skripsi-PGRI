@@ -30,7 +30,7 @@ class Details(db.Model):
 
     @staticmethod
     def getAll(queryId):
-        details = Details.query.filter_by(query_id=queryId).order_by(Details.score.desc()).limit(5).all()
+        details = Details.query.filter_by(query_id=queryId).order_by(Details.score.desc()).all()
         result = list()
         for data in details:
             obj = {
