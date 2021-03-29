@@ -53,7 +53,7 @@ def read_with_params(query, params):
     result = None
     try:
         cursor.execute(query,params)
-        result = cursor.fetchone()
+        result = cursor.fetchall()
         return result
     except Error as err:
         print(f"Error: '{err}'")

@@ -23,7 +23,16 @@ def preprocessing():
 @app.route("/search", methods=RequestMethod.GET_POST)
 def search():
     # dataset = pd.read_excel("app/db/databerita.xlsx")
-   
+
+    condition = " SELECT count(id) as max_siswa,dosen_id FROM mst_dosen_mengampu WHERE approval = 1 GROUP BY dosen_id"
+
+    result_max = read_all(condition)
+    
+    temp_dosen_available = []
+    for max_siswa in result_max :
+        if (max_siswa[0] <= 20) :
+            temp_dosen_available.append(max_siswa[1])    
+    
     dataset = " SELECT sys_dosen.dosen_name, mst_dosen_judul.dosen_judul, mst_dosen_judul.dosen_judul_processing, mst_dosen_judul.dosen_judul_id , sys_dosen.dosen_id FROM mst_dosen_judul JOIN sys_dosen ON sys_dosen.dosen_id = mst_dosen_judul.dosen_id"
     results = read_all(dataset)
 
@@ -33,11 +42,12 @@ def search():
     temp_dosen_judul = []
     temp_dosen_id = []
     for doc in results :
-        temp_dosen.append(doc[0])
-        temp_judul.append(doc[1])
-        temp_preprrocessing.append(doc[2])
-        temp_dosen_judul.append(doc[3])
-        temp_dosen_id.append(doc[4])
+        if doc[4] in temp_dosen_available:
+            temp_dosen.append(doc[0])
+            temp_judul.append(doc[1])
+            temp_preprrocessing.append(doc[2])
+            temp_dosen_judul.append(doc[3])
+            temp_dosen_id.append(doc[4])
    
     response = list()  # Define response
     if request.method == "POST":
@@ -70,6 +80,9 @@ def search():
             resp.status_code = 400
             return resp
 
+    if not temp_preprrocessing:
+        return jsonify(response)
+
         # Preproces queries
     queriesPre = list()
     for query in queries:
@@ -79,6 +92,7 @@ def search():
    
     engine = Engine()
     docs = [str(x) for x in temp_preprrocessing]
+    
     documentsName = list()
 
     for i, doc in enumerate(docs):
